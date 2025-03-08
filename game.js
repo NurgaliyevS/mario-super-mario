@@ -76,11 +76,11 @@ function create() {
     graphics.fillRect(12, 16, 8, 8); // Stem
     graphics.generateTexture('mushroom', 32, 32);
 
-    // Goomba texture: Brown enemy with more distinct features
+    // Goomba texture: Purple enemy with more distinct features
     graphics.clear();
-    graphics.fillStyle(0x8B4513); // Brown color
+    graphics.fillStyle(0x9370DB); // Medium purple color
     graphics.fillRect(0, 0, 32, 32); // Square base
-    graphics.fillStyle(0x6B3103); // Darker brown for details
+    graphics.fillStyle(0x6A5ACD); // Darker purple for details
     graphics.fillRect(4, 20, 24, 12); // Body detail
     graphics.fillStyle(0x000000); // Black color for eyes
     graphics.fillRect(8, 8, 6, 6); // Left eye
@@ -89,9 +89,9 @@ function create() {
 
     // Goomba squished texture - improved to match new design
     graphics.clear();
-    graphics.fillStyle(0x8B4513); // Brown color
+    graphics.fillStyle(0x9370DB); // Medium purple color
     graphics.fillRect(0, 24, 32, 8); // Flattened rectangle
-    graphics.fillStyle(0x6B3103); // Darker brown for details
+    graphics.fillStyle(0x6A5ACD); // Darker purple for details
     graphics.fillRect(4, 26, 24, 4); // Flattened body detail
     graphics.generateTexture('goomba-squished', 32, 32);
 
