@@ -11,9 +11,12 @@ var config = {
         }
     },
     scene: {
+        preload: preload,
         create: create,
         update: update
-    }
+    },
+    pixelArt: true,
+    roundPixels: true
 };
 
 // Initialize the Phaser game instance
@@ -30,115 +33,14 @@ var isInvulnerable = false;
 var invulnerableTimer = 0;
 var gameOverGroup; // Group to hold all game over elements
 
-// Scene creation function
-function create() {
-    // Create graphics for generating textures
+// Preload function to load assets
+function preload() {
+    // Create Mario sprites directly as textures
+    createMarioTextures(this);
+    
+    // Create graphics for generating textures for other game elements
     var graphics = this.make.graphics({x: 0, y: 0, add: false});
-
-    // Create sky background
-    graphics.fillStyle(0x87CEEB); // Light blue
-    graphics.fillRect(0, 0, 800, 600);
-    graphics.generateTexture('sky', 800, 600);
-    this.skyBackground = this.add.tileSprite(400, 300, 800, 600, 'sky');
-    this.skyBackground.setScrollFactor(0); // Fix sky to camera
-
-    // Create Mario textures for different states
-    // Mario idle texture
-    graphics.clear();
-    // Red hat
-    graphics.fillStyle(0xFF0000);
-    graphics.fillRect(8, 0, 16, 8);
-    // Brown hair
-    graphics.fillStyle(0x8B4513);
-    graphics.fillRect(4, 8, 8, 4);
-    // Face
-    graphics.fillStyle(0xFFC0CB);
-    graphics.fillRect(12, 8, 12, 8);
-    // Blue overalls
-    graphics.fillStyle(0x0000FF);
-    graphics.fillRect(8, 16, 16, 16);
-    // Red shirt
-    graphics.fillStyle(0xFF0000);
-    graphics.fillRect(4, 16, 4, 12);
-    graphics.fillRect(24, 16, 4, 12);
-    // Brown shoes
-    graphics.fillStyle(0x8B4513);
-    graphics.fillRect(4, 28, 8, 4);
-    graphics.fillRect(20, 28, 8, 4);
-    graphics.generateTexture('mario-idle', 32, 32);
-
-    // Mario running texture 1
-    graphics.clear();
-    // Red hat
-    graphics.fillStyle(0xFF0000);
-    graphics.fillRect(8, 0, 16, 8);
-    // Brown hair
-    graphics.fillStyle(0x8B4513);
-    graphics.fillRect(4, 8, 8, 4);
-    // Face
-    graphics.fillStyle(0xFFC0CB);
-    graphics.fillRect(12, 8, 12, 8);
-    // Blue overalls
-    graphics.fillStyle(0x0000FF);
-    graphics.fillRect(8, 16, 16, 16);
-    // Red shirt
-    graphics.fillStyle(0xFF0000);
-    graphics.fillRect(4, 16, 4, 12);
-    graphics.fillRect(24, 16, 4, 12);
-    // Brown shoes (running position 1)
-    graphics.fillStyle(0x8B4513);
-    graphics.fillRect(0, 28, 8, 4);
-    graphics.fillRect(24, 28, 8, 4);
-    graphics.generateTexture('mario-run1', 32, 32);
-
-    // Mario running texture 2
-    graphics.clear();
-    // Red hat
-    graphics.fillStyle(0xFF0000);
-    graphics.fillRect(8, 0, 16, 8);
-    // Brown hair
-    graphics.fillStyle(0x8B4513);
-    graphics.fillRect(4, 8, 8, 4);
-    // Face
-    graphics.fillStyle(0xFFC0CB);
-    graphics.fillRect(12, 8, 12, 8);
-    // Blue overalls
-    graphics.fillStyle(0x0000FF);
-    graphics.fillRect(8, 16, 16, 16);
-    // Red shirt
-    graphics.fillStyle(0xFF0000);
-    graphics.fillRect(4, 16, 4, 12);
-    graphics.fillRect(24, 16, 4, 12);
-    // Brown shoes (running position 2)
-    graphics.fillStyle(0x8B4513);
-    graphics.fillRect(4, 28, 8, 4);
-    graphics.fillRect(20, 28, 8, 4);
-    graphics.generateTexture('mario-run2', 32, 32);
-
-    // Mario jumping texture
-    graphics.clear();
-    // Red hat
-    graphics.fillStyle(0xFF0000);
-    graphics.fillRect(8, 0, 16, 8);
-    // Brown hair
-    graphics.fillStyle(0x8B4513);
-    graphics.fillRect(4, 8, 8, 4);
-    // Face
-    graphics.fillStyle(0xFFC0CB);
-    graphics.fillRect(12, 8, 12, 8);
-    // Blue overalls
-    graphics.fillStyle(0x0000FF);
-    graphics.fillRect(8, 16, 16, 16);
-    // Red shirt with arms up
-    graphics.fillStyle(0xFF0000);
-    graphics.fillRect(4, 12, 4, 8);
-    graphics.fillRect(24, 12, 4, 8);
-    // Brown shoes (jumping position)
-    graphics.fillStyle(0x8B4513);
-    graphics.fillRect(8, 28, 6, 4);
-    graphics.fillRect(18, 28, 6, 4);
-    graphics.generateTexture('mario-jump', 32, 32);
-
+    
     // Platform texture: Green rectangle for ground
     graphics.fillStyle(0x00aa00); // Green color
     graphics.fillRect(0, 0, 32, 32); // 32x32 rectangle
@@ -188,29 +90,250 @@ function create() {
     graphics.fillStyle(0x6A5ACD); // Darker purple for details
     graphics.fillRect(4, 26, 24, 4); // Flattened body detail
     graphics.generateTexture('goomba-squished', 32, 32);
+}
 
-    // Create game over Mario texture
+// Function to create Mario textures directly in the scene
+function createMarioTextures(scene) {
+    // Create Mario idle texture
+    var graphics = scene.make.graphics({x: 0, y: 0, add: false});
+    
+    // Red hat
+    graphics.fillStyle(0xFF0000);
+    graphics.fillRect(8, 0, 16, 8);
+    
+    // Brown hair
+    graphics.fillStyle(0x8B4513);
+    graphics.fillRect(4, 8, 8, 4);
+    
+    // Face
+    graphics.fillStyle(0xFFA07A);
+    graphics.fillRect(12, 8, 12, 8);
+    
+    // Eyes
+    graphics.fillStyle(0x000000);
+    graphics.fillRect(14, 10, 2, 2);
+    graphics.fillRect(22, 10, 2, 2);
+    
+    // Mustache
+    graphics.fillStyle(0x8B4513);
+    graphics.fillRect(12, 14, 12, 2);
+    
+    // Blue overalls
+    graphics.fillStyle(0x0000FF);
+    graphics.fillRect(8, 16, 16, 16);
+    
+    // Overall buttons
+    graphics.fillStyle(0xFFFF00);
+    graphics.fillRect(12, 18, 2, 2);
+    graphics.fillRect(18, 18, 2, 2);
+    
+    // Red shirt
+    graphics.fillStyle(0xFF0000);
+    graphics.fillRect(4, 16, 4, 12);
+    graphics.fillRect(24, 16, 4, 12);
+    
+    // Brown shoes
+    graphics.fillStyle(0x8B4513);
+    graphics.fillRect(4, 28, 8, 4);
+    graphics.fillRect(20, 28, 8, 4);
+    
+    graphics.generateTexture('mario-idle', 32, 32);
+    
+    // Create Mario run texture 1
     graphics.clear();
-    // Head/hat
-    graphics.fillStyle(0xFFA500); // Orange hat
-    graphics.fillRect(16, 4, 32, 8);
-    graphics.fillStyle(0xA52A2A); // Brown hair
-    graphics.fillRect(12, 8, 8, 8);
-    graphics.fillRect(44, 8, 8, 8);
-    graphics.fillStyle(0xFFD700); // Gold/yellow face
-    graphics.fillRect(20, 12, 24, 16);
-    // Face details
-    graphics.fillStyle(0xA52A2A); // Brown mustache
-    graphics.fillRect(16, 20, 8, 4);
-    graphics.fillRect(40, 20, 8, 4);
-    // Body
-    graphics.fillStyle(0xFF0000); // Red shirt
-    graphics.fillRect(24, 28, 16, 16);
-    graphics.fillStyle(0xFFD700); // Gold/yellow arms
-    graphics.fillRect(16, 28, 8, 12);
-    graphics.fillRect(40, 28, 8, 12);
-    // Generate the texture
-    graphics.generateTexture('gameOverMario', 64, 48);
+    
+    // Red hat
+    graphics.fillStyle(0xFF0000);
+    graphics.fillRect(8, 0, 16, 8);
+    
+    // Brown hair
+    graphics.fillStyle(0x8B4513);
+    graphics.fillRect(4, 8, 8, 4);
+    
+    // Face
+    graphics.fillStyle(0xFFA07A);
+    graphics.fillRect(12, 8, 12, 8);
+    
+    // Eyes
+    graphics.fillStyle(0x000000);
+    graphics.fillRect(14, 10, 2, 2);
+    graphics.fillRect(22, 10, 2, 2);
+    
+    // Mustache
+    graphics.fillStyle(0x8B4513);
+    graphics.fillRect(12, 14, 12, 2);
+    
+    // Blue overalls
+    graphics.fillStyle(0x0000FF);
+    graphics.fillRect(8, 16, 16, 16);
+    
+    // Overall buttons
+    graphics.fillStyle(0xFFFF00);
+    graphics.fillRect(12, 18, 2, 2);
+    graphics.fillRect(18, 18, 2, 2);
+    
+    // Red shirt
+    graphics.fillStyle(0xFF0000);
+    graphics.fillRect(4, 16, 4, 12);
+    graphics.fillRect(24, 16, 4, 12);
+    
+    // Brown shoes (running position 1)
+    graphics.fillStyle(0x8B4513);
+    graphics.fillRect(0, 28, 8, 4);
+    graphics.fillRect(24, 28, 8, 4);
+    
+    graphics.generateTexture('mario-run1', 32, 32);
+    
+    // Create Mario run texture 2
+    graphics.clear();
+    
+    // Red hat
+    graphics.fillStyle(0xFF0000);
+    graphics.fillRect(8, 0, 16, 8);
+    
+    // Brown hair
+    graphics.fillStyle(0x8B4513);
+    graphics.fillRect(4, 8, 8, 4);
+    
+    // Face
+    graphics.fillStyle(0xFFA07A);
+    graphics.fillRect(12, 8, 12, 8);
+    
+    // Eyes
+    graphics.fillStyle(0x000000);
+    graphics.fillRect(14, 10, 2, 2);
+    graphics.fillRect(22, 10, 2, 2);
+    
+    // Mustache
+    graphics.fillStyle(0x8B4513);
+    graphics.fillRect(12, 14, 12, 2);
+    
+    // Blue overalls
+    graphics.fillStyle(0x0000FF);
+    graphics.fillRect(8, 16, 16, 16);
+    
+    // Overall buttons
+    graphics.fillStyle(0xFFFF00);
+    graphics.fillRect(12, 18, 2, 2);
+    graphics.fillRect(18, 18, 2, 2);
+    
+    // Red shirt
+    graphics.fillStyle(0xFF0000);
+    graphics.fillRect(4, 16, 4, 12);
+    graphics.fillRect(24, 16, 4, 12);
+    
+    // Brown shoes (running position 2)
+    graphics.fillStyle(0x8B4513);
+    graphics.fillRect(4, 28, 8, 4);
+    graphics.fillRect(20, 28, 8, 4);
+    
+    graphics.generateTexture('mario-run2', 32, 32);
+    
+    // Create Mario jump texture
+    graphics.clear();
+    
+    // Red hat
+    graphics.fillStyle(0xFF0000);
+    graphics.fillRect(8, 0, 16, 8);
+    
+    // Brown hair
+    graphics.fillStyle(0x8B4513);
+    graphics.fillRect(4, 8, 8, 4);
+    
+    // Face
+    graphics.fillStyle(0xFFA07A);
+    graphics.fillRect(12, 8, 12, 8);
+    
+    // Eyes
+    graphics.fillStyle(0x000000);
+    graphics.fillRect(14, 10, 2, 2);
+    graphics.fillRect(22, 10, 2, 2);
+    
+    // Mustache
+    graphics.fillStyle(0x8B4513);
+    graphics.fillRect(12, 14, 12, 2);
+    
+    // Blue overalls
+    graphics.fillStyle(0x0000FF);
+    graphics.fillRect(8, 16, 16, 16);
+    
+    // Overall buttons
+    graphics.fillStyle(0xFFFF00);
+    graphics.fillRect(12, 18, 2, 2);
+    graphics.fillRect(18, 18, 2, 2);
+    
+    // Red shirt with arms up
+    graphics.fillStyle(0xFF0000);
+    graphics.fillRect(4, 12, 4, 8);
+    graphics.fillRect(24, 12, 4, 8);
+    
+    // Brown shoes (jumping position)
+    graphics.fillStyle(0x8B4513);
+    graphics.fillRect(8, 28, 6, 4);
+    graphics.fillRect(18, 28, 6, 4);
+    
+    graphics.generateTexture('mario-jump', 32, 32);
+    
+    // Create Mario death texture
+    graphics.clear();
+    
+    // Red hat
+    graphics.fillStyle(0xFF0000);
+    graphics.fillRect(8, 0, 16, 8);
+    
+    // Brown hair
+    graphics.fillStyle(0x8B4513);
+    graphics.fillRect(4, 8, 8, 4);
+    
+    // Face
+    graphics.fillStyle(0xFFA07A);
+    graphics.fillRect(12, 8, 12, 8);
+    
+    // X eyes
+    graphics.fillStyle(0x000000);
+    // Left X
+    graphics.fillRect(13, 10, 2, 2);
+    graphics.fillRect(15, 12, 2, 2);
+    graphics.fillRect(15, 10, 2, 2);
+    graphics.fillRect(13, 12, 2, 2);
+    // Right X
+    graphics.fillRect(21, 10, 2, 2);
+    graphics.fillRect(23, 12, 2, 2);
+    graphics.fillRect(23, 10, 2, 2);
+    graphics.fillRect(21, 12, 2, 2);
+    
+    // Mustache
+    graphics.fillStyle(0x8B4513);
+    graphics.fillRect(12, 14, 12, 2);
+    
+    // Blue overalls
+    graphics.fillStyle(0x0000FF);
+    graphics.fillRect(8, 16, 16, 16);
+    
+    // Overall buttons
+    graphics.fillStyle(0xFFFF00);
+    graphics.fillRect(12, 18, 2, 2);
+    graphics.fillRect(18, 18, 2, 2);
+    
+    // Red shirt
+    graphics.fillStyle(0xFF0000);
+    graphics.fillRect(4, 16, 4, 12);
+    graphics.fillRect(24, 16, 4, 12);
+    
+    graphics.generateTexture('mario-death', 32, 32);
+}
+
+// Scene creation function
+function create() {
+    // Create graphics for generating textures
+    var graphics = this.make.graphics({x: 0, y: 0, add: false});
+
+    // Create sky background
+    graphics.fillStyle(0x87CEEB); // Light blue
+    graphics.fillRect(0, 0, 800, 600);
+    graphics.generateTexture('sky', 800, 600);
+    this.skyBackground = this.add.tileSprite(400, 300, 800, 600, 'sky');
+    this.skyBackground.setScrollFactor(0); // Fix sky to camera
 
     // Add player sprite with physics - using our custom Mario texture
     this.player = this.physics.add.sprite(100, 450, 'mario-idle');
@@ -692,6 +815,9 @@ function playerDie() {
         // Clear any existing game over elements
         if (gameOverGroup) {
             gameOverGroup.clear(true, true);
+        } else {
+            // Initialize game over group if it doesn't exist yet
+            gameOverGroup = this.add.group();
         }
         
         // Create fixed game over screen (attached to camera, not world)
@@ -710,10 +836,10 @@ function playerDie() {
         gameOverGroup.add(gameOverText);
         
         // Mario image
-        var marioImage = this.add.image(400, 300, 'gameOverMario')
+        var marioImage = this.add.image(400, 300, 'mario-death')
             .setOrigin(0.5)
             .setScrollFactor(0)
-            .setScale(2); // Make it larger
+            .setScale(4); // Make it larger
         gameOverGroup.add(marioImage);
         
         // Restart instructions
