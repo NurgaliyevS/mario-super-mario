@@ -42,10 +42,102 @@ function create() {
     this.skyBackground = this.add.tileSprite(400, 300, 800, 600, 'sky');
     this.skyBackground.setScrollFactor(0); // Fix sky to camera
 
-    // Player texture: Red square for Mario
-    graphics.fillStyle(0xff0000); // Red color
-    graphics.fillRect(0, 0, 32, 32); // 32x32 square
-    graphics.generateTexture('player', 32, 32);
+    // Create Mario textures for different states
+    // Mario idle texture
+    graphics.clear();
+    // Red hat
+    graphics.fillStyle(0xFF0000);
+    graphics.fillRect(8, 0, 16, 8);
+    // Brown hair
+    graphics.fillStyle(0x8B4513);
+    graphics.fillRect(4, 8, 8, 4);
+    // Face
+    graphics.fillStyle(0xFFC0CB);
+    graphics.fillRect(12, 8, 12, 8);
+    // Blue overalls
+    graphics.fillStyle(0x0000FF);
+    graphics.fillRect(8, 16, 16, 16);
+    // Red shirt
+    graphics.fillStyle(0xFF0000);
+    graphics.fillRect(4, 16, 4, 12);
+    graphics.fillRect(24, 16, 4, 12);
+    // Brown shoes
+    graphics.fillStyle(0x8B4513);
+    graphics.fillRect(4, 28, 8, 4);
+    graphics.fillRect(20, 28, 8, 4);
+    graphics.generateTexture('mario-idle', 32, 32);
+
+    // Mario running texture 1
+    graphics.clear();
+    // Red hat
+    graphics.fillStyle(0xFF0000);
+    graphics.fillRect(8, 0, 16, 8);
+    // Brown hair
+    graphics.fillStyle(0x8B4513);
+    graphics.fillRect(4, 8, 8, 4);
+    // Face
+    graphics.fillStyle(0xFFC0CB);
+    graphics.fillRect(12, 8, 12, 8);
+    // Blue overalls
+    graphics.fillStyle(0x0000FF);
+    graphics.fillRect(8, 16, 16, 16);
+    // Red shirt
+    graphics.fillStyle(0xFF0000);
+    graphics.fillRect(4, 16, 4, 12);
+    graphics.fillRect(24, 16, 4, 12);
+    // Brown shoes (running position 1)
+    graphics.fillStyle(0x8B4513);
+    graphics.fillRect(0, 28, 8, 4);
+    graphics.fillRect(24, 28, 8, 4);
+    graphics.generateTexture('mario-run1', 32, 32);
+
+    // Mario running texture 2
+    graphics.clear();
+    // Red hat
+    graphics.fillStyle(0xFF0000);
+    graphics.fillRect(8, 0, 16, 8);
+    // Brown hair
+    graphics.fillStyle(0x8B4513);
+    graphics.fillRect(4, 8, 8, 4);
+    // Face
+    graphics.fillStyle(0xFFC0CB);
+    graphics.fillRect(12, 8, 12, 8);
+    // Blue overalls
+    graphics.fillStyle(0x0000FF);
+    graphics.fillRect(8, 16, 16, 16);
+    // Red shirt
+    graphics.fillStyle(0xFF0000);
+    graphics.fillRect(4, 16, 4, 12);
+    graphics.fillRect(24, 16, 4, 12);
+    // Brown shoes (running position 2)
+    graphics.fillStyle(0x8B4513);
+    graphics.fillRect(4, 28, 8, 4);
+    graphics.fillRect(20, 28, 8, 4);
+    graphics.generateTexture('mario-run2', 32, 32);
+
+    // Mario jumping texture
+    graphics.clear();
+    // Red hat
+    graphics.fillStyle(0xFF0000);
+    graphics.fillRect(8, 0, 16, 8);
+    // Brown hair
+    graphics.fillStyle(0x8B4513);
+    graphics.fillRect(4, 8, 8, 4);
+    // Face
+    graphics.fillStyle(0xFFC0CB);
+    graphics.fillRect(12, 8, 12, 8);
+    // Blue overalls
+    graphics.fillStyle(0x0000FF);
+    graphics.fillRect(8, 16, 16, 16);
+    // Red shirt with arms up
+    graphics.fillStyle(0xFF0000);
+    graphics.fillRect(4, 12, 4, 8);
+    graphics.fillRect(24, 12, 4, 8);
+    // Brown shoes (jumping position)
+    graphics.fillStyle(0x8B4513);
+    graphics.fillRect(8, 28, 6, 4);
+    graphics.fillRect(18, 28, 6, 4);
+    graphics.generateTexture('mario-jump', 32, 32);
 
     // Platform texture: Green rectangle for ground
     graphics.fillStyle(0x00aa00); // Green color
@@ -120,11 +212,37 @@ function create() {
     // Generate the texture
     graphics.generateTexture('gameOverMario', 64, 48);
 
-    // Add player sprite with physics
-    this.player = this.physics.add.sprite(100, 450, 'player');
+    // Add player sprite with physics - using our custom Mario texture
+    this.player = this.physics.add.sprite(100, 450, 'mario-idle');
     this.player.setBounce(0.1);
     this.player.setCollideWorldBounds(false);
     this.player.isBig = false; // Track if Mario is big (powered up)
+    
+    // Create animations for Mario
+    this.anims.create({
+        key: 'mario-idle',
+        frames: [ { key: 'mario-idle' } ],
+        frameRate: 10
+    });
+    
+    this.anims.create({
+        key: 'mario-run',
+        frames: [
+            { key: 'mario-run1' },
+            { key: 'mario-run2' }
+        ],
+        frameRate: 10,
+        repeat: -1
+    });
+    
+    this.anims.create({
+        key: 'mario-jump',
+        frames: [ { key: 'mario-jump' } ],
+        frameRate: 10
+    });
+    
+    // Set default animation
+    this.player.anims.play('mario-idle');
 
     // Create static groups for all game objects
     this.platforms = this.physics.add.staticGroup();
@@ -344,16 +462,29 @@ function update(time, delta) {
     if (this.cursors.left.isDown) {
         this.player.setVelocityX(-160);
         this.player.flipX = true;
+        if (this.player.body.touching.down) {
+            this.player.anims.play('mario-run', true);
+        }
     } else if (this.cursors.right.isDown) {
         this.player.setVelocityX(160);
         this.player.flipX = false;
+        if (this.player.body.touching.down) {
+            this.player.anims.play('mario-run', true);
+        }
     } else {
         this.player.setVelocityX(0);
+        if (this.player.body.touching.down) {
+            this.player.anims.play('mario-idle', true);
+        }
     }
 
     // Handle player jumping
     if (this.cursors.up.isDown && this.player.body.touching.down) {
         this.player.setVelocityY(-330);
+        this.player.anims.play('mario-jump');
+    } else if (!this.player.body.touching.down) {
+        // Keep jump animation while in the air
+        this.player.anims.play('mario-jump');
     }
 
     // Update score display
@@ -635,6 +766,7 @@ function restartGame() {
     this.player.y = 450;
     this.player.isBig = false;
     this.player.setScale(1);
+    this.player.anims.play('mario-idle');
     
     // Reset camera
     this.cameras.main.scrollX = 0;
