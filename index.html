@@ -18,9 +18,93 @@
             display: block;
             margin: 0 auto;
         }
+        #game-container {
+            display: flex;
+            flex-direction: row;
+        }
+        #leaderboard {
+            width: 200px;
+            height: 600px;
+            background-color: rgb(25, 33, 33);
+            color: white;
+            font-family: monospace;
+            padding: 10px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        #leaderboard h2 {
+            color: white;
+            text-align: center;
+            margin-top: 10px;
+            text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.5);
+        }
+        .leaderboard-entry {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 5px;
+            border-radius: 3px;
+        }
+        #email-input-container {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #00AAFF;
+            z-index: 1000;
+            width: 300px;
+        }
+        #email-input {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+            background-color: #333;
+            border: 1px solid #00AAFF;
+            color: white;
+            font-family: monospace;
+        }
+        .input-button {
+            background-color: #00AAFF;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: monospace;
+        }
+        #submit-message {
+            color: #00FF00;
+            text-align: center;
+            margin-top: 10px;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
+    <div id="game-container">
+        <div id="phaser-game"></div>
+        <div id="leaderboard">
+            <h2>LEADERBOARD</h2>
+            <div id="leaderboard-entries"></div>
+        </div>
+    </div>
+    
+    <div id="email-input-container">
+        <h3 style="color: white; text-align: center;">Submit Your Score</h3>
+        <p style="color: white;">Final Score: <span id="final-score">0</span></p>
+        <input type="email" id="email-input" placeholder="Enter your email">
+        <div style="display: flex; justify-content: space-between;">
+            <button class="input-button" id="submit-score">Submit</button>
+            <button class="input-button" id="cancel-submit">Cancel</button>
+        </div>
+        <div id="submit-message"></div>
+    </div>
+    
     <script src="game.js"></script>
 </body>
 </html>

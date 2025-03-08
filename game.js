@@ -3,6 +3,7 @@ var config = {
     type: Phaser.AUTO,
     width: 800,
     height: 600,
+    parent: 'phaser-game',
     physics: {
         default: 'arcade',
         arcade: {
@@ -32,6 +33,149 @@ var livesText;
 var isInvulnerable = false;
 var invulnerableTimer = 0;
 var gameOverGroup; // Group to hold all game over elements
+
+// Leaderboard functionality
+let leaderboard = [];
+let isSubmittingScore = false;
+
+// Fetch leaderboard data when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+    fetchLeaderboard();
+    setupEmailInputHandlers();
+});
+
+// Fetch leaderboard data from the server
+function fetchLeaderboard() {
+    const apiUrl = window.location.hostname === "localhost" || 
+                  window.location.hostname === "127.0.0.1" 
+                  ? "http://localhost:3000/api/leaderboard" 
+                  : window.location.origin + "/api/leaderboard";
+    
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            leaderboard = data;
+            updateLeaderboardDisplay();
+        })
+        .catch(error => {
+            console.error('Error fetching leaderboard:', error);
+        });
+}
+
+// Update the leaderboard display in the HTML
+function updateLeaderboardDisplay() {
+    const leaderboardEntries = document.getElementById('leaderboard-entries');
+    leaderboardEntries.innerHTML = '';
+    
+    leaderboard.slice(0, 10).forEach((entry, index) => {
+        const entryDiv = document.createElement('div');
+        entryDiv.className = 'leaderboard-entry';
+        
+        // Only show the part before @ symbol
+        let displayEmail = entry.email.split('@')[0];
+        if (displayEmail.length > 10) {
+            displayEmail = displayEmail.substring(0, 7) + '...';
+        }
+        
+        entryDiv.innerHTML = `
+            <span>${index + 1}. ${displayEmail}</span>
+            <span>${entry.score}</span>
+        `;
+        
+        leaderboardEntries.appendChild(entryDiv);
+    });
+}
+
+// Set up event handlers for the email input form
+function setupEmailInputHandlers() {
+    const emailInputContainer = document.getElementById('email-input-container');
+    const submitButton = document.getElementById('submit-score');
+    const cancelButton = document.getElementById('cancel-submit');
+    const emailInput = document.getElementById('email-input');
+    const submitMessage = document.getElementById('submit-message');
+    
+    // Submit button handler
+    submitButton.addEventListener('click', function() {
+        const email = emailInput.value.trim();
+        
+        if (!isValidEmail(email)) {
+            submitMessage.textContent = 'Please enter a valid email address';
+            submitMessage.style.color = '#FF0000';
+            return;
+        }
+        
+        submitScore(email, score);
+    });
+    
+    // Cancel button handler
+    cancelButton.addEventListener('click', function() {
+        emailInputContainer.style.display = 'none';
+    });
+}
+
+// Check if email is valid
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+// Submit score to the leaderboard
+function submitScore(email, score) {
+    if (isSubmittingScore) return;
+    
+    isSubmittingScore = true;
+    const submitMessage = document.getElementById('submit-message');
+    submitMessage.textContent = 'Submitting...';
+    submitMessage.style.color = '#FFFFFF';
+    
+    const apiUrl = window.location.hostname === "localhost" || 
+                  window.location.hostname === "127.0.0.1" 
+                  ? "http://localhost:3000/api/submit-score" 
+                  : window.location.origin + "/api/submit-score";
+    
+    fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, score })
+    })
+    .then(response => response.json())
+    .then(data => {
+        submitMessage.textContent = data.message || 'Score submitted successfully!';
+        submitMessage.style.color = '#00FF00';
+        isSubmittingScore = false;
+        
+        // Refresh the leaderboard
+        fetchLeaderboard();
+        
+        // Hide the form after 2 seconds
+        setTimeout(() => {
+            document.getElementById('email-input-container').style.display = 'none';
+        }, 2000);
+    })
+    .catch(error => {
+        console.error('Error submitting score:', error);
+        submitMessage.textContent = 'Error submitting score. Please try again.';
+        submitMessage.style.color = '#FF0000';
+        isSubmittingScore = false;
+    });
+}
+
+// Override the playerDie function to show the email input when game over
+const originalPlayerDie = playerDie;
+playerDie = function() {
+    // Call the original function first
+    originalPlayerDie.apply(this, arguments);
+    
+    // If game over, show the email input after a short delay
+    if (lives <= 0) {
+        setTimeout(() => {
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('email-input-container').style.display = 'block';
+        }, 1000);
+    }
+};
 
 // Preload function to load assets
 function preload() {
