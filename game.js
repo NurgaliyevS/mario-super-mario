@@ -28,6 +28,7 @@ var lives = 3;
 var livesText;
 var isInvulnerable = false;
 var invulnerableTimer = 0;
+var gameOverGroup; // Group to hold all game over elements
 
 // Scene creation function
 function create() {
@@ -38,7 +39,8 @@ function create() {
     graphics.fillStyle(0x87CEEB); // Light blue
     graphics.fillRect(0, 0, 800, 600);
     graphics.generateTexture('sky', 800, 600);
-    this.add.tileSprite(400, 300, 8000, 600, 'sky');
+    this.skyBackground = this.add.tileSprite(400, 300, 800, 600, 'sky');
+    this.skyBackground.setScrollFactor(0); // Fix sky to camera
 
     // Player texture: Red square for Mario
     graphics.fillStyle(0xff0000); // Red color
@@ -94,6 +96,29 @@ function create() {
     graphics.fillStyle(0x6A5ACD); // Darker purple for details
     graphics.fillRect(4, 26, 24, 4); // Flattened body detail
     graphics.generateTexture('goomba-squished', 32, 32);
+
+    // Create game over Mario texture
+    graphics.clear();
+    // Head/hat
+    graphics.fillStyle(0xFFA500); // Orange hat
+    graphics.fillRect(16, 4, 32, 8);
+    graphics.fillStyle(0xA52A2A); // Brown hair
+    graphics.fillRect(12, 8, 8, 8);
+    graphics.fillRect(44, 8, 8, 8);
+    graphics.fillStyle(0xFFD700); // Gold/yellow face
+    graphics.fillRect(20, 12, 24, 16);
+    // Face details
+    graphics.fillStyle(0xA52A2A); // Brown mustache
+    graphics.fillRect(16, 20, 8, 4);
+    graphics.fillRect(40, 20, 8, 4);
+    // Body
+    graphics.fillStyle(0xFF0000); // Red shirt
+    graphics.fillRect(24, 28, 16, 16);
+    graphics.fillStyle(0xFFD700); // Gold/yellow arms
+    graphics.fillRect(16, 28, 8, 12);
+    graphics.fillRect(40, 28, 8, 12);
+    // Generate the texture
+    graphics.generateTexture('gameOverMario', 64, 48);
 
     // Add player sprite with physics
     this.player = this.physics.add.sprite(100, 450, 'player');
@@ -158,10 +183,23 @@ function create() {
     // Add lives text
     this.livesText = this.add.text(650, 16, 'Lives: ' + lives, { fontSize: '32px', fill: '#FFF' });
     this.livesText.setScrollFactor(0);
+
+    // Initialize game over group (will be populated when needed)
+    gameOverGroup = this.add.group();
+    
+    // Add space key for restart
+    this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 }
 
 function update(time, delta) {
+    // Update background to follow camera
+    this.skyBackground.tilePositionX = this.cameras.main.scrollX;
+    
     if (gameOver) {
+        // Check for space key to restart game
+        if (this.spaceKey.isDown) {
+            restartGame.call(this);
+        }
         return;
     }
 
@@ -519,10 +557,52 @@ function playerDie() {
     
     if (lives <= 0) {
         gameOver = true;
-        this.add.text(this.cameras.main.scrollX + 400, 300, 'GAME OVER', { 
-            fontSize: '64px', 
-            fill: '#FFF' 
-        }).setOrigin(0.5);
+        
+        // Clear any existing game over elements
+        if (gameOverGroup) {
+            gameOverGroup.clear(true, true);
+        }
+        
+        // Create fixed game over screen (attached to camera, not world)
+        
+        // Black background covering the entire screen
+        var blackOverlay = this.add.rectangle(
+            400, 300, 800, 600, 0x000000
+        ).setScrollFactor(0);
+        gameOverGroup.add(blackOverlay);
+        
+        // Game over text
+        var gameOverText = this.add.text(
+            400, 200, 'GAME OVER', 
+            { fontSize: '48px', fill: '#FFF', fontFamily: 'monospace' }
+        ).setOrigin(0.5).setScrollFactor(0);
+        gameOverGroup.add(gameOverText);
+        
+        // Mario image
+        var marioImage = this.add.image(400, 300, 'gameOverMario')
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setScale(2); // Make it larger
+        gameOverGroup.add(marioImage);
+        
+        // Restart instructions
+        var restartText = this.add.text(
+            400, 400, 'Press SPACE to restart', 
+            { fontSize: '24px', fill: '#FFF', fontFamily: 'monospace' }
+        ).setOrigin(0.5).setScrollFactor(0);
+        gameOverGroup.add(restartText);
+        
+        // Make restart text blink for visibility
+        this.tweens.add({
+            targets: restartText,
+            alpha: 0.2,
+            duration: 500,
+            ease: 'Power2',
+            yoyo: true,
+            repeat: -1
+        });
+        
+        // Tint player red
         this.player.setTint(0xff0000);
     } else {
         // Reset player position
@@ -532,4 +612,51 @@ function playerDie() {
         isInvulnerable = true;
         invulnerableTimer = 0;
     }
+}
+
+// Add new function to restart the game
+function restartGame() {
+    // Reset game state variables
+    score = 0;
+    gameOver = false;
+    lives = 3;
+    isInvulnerable = false;
+    invulnerableTimer = 0;
+    
+    // Remove game over screen elements
+    if (gameOverGroup) {
+        gameOverGroup.clear(true, true);
+    }
+    
+    // Reset player
+    this.player.clearTint();
+    this.player.setVelocity(0, 0);
+    this.player.x = 100;
+    this.player.y = 450;
+    this.player.isBig = false;
+    this.player.setScale(1);
+    
+    // Reset camera
+    this.cameras.main.scrollX = 0;
+    
+    // Clear existing game objects
+    this.platforms.clear(true, true);
+    this.bricks.clear(true, true);
+    this.pipes.clear(true, true);
+    this.coins.clear(true, true);
+    this.mushrooms.clear(true, true);
+    this.enemies.clear(true, true);
+    
+    // Reset spawn position
+    nextSpawnX = 0;
+    
+    // Respawn initial level segments
+    spawnGroundSegment(this, 0);
+    spawnGroundSegment(this, 800);
+    spawnFloatingPlatforms(this, 0);
+    spawnFloatingPlatforms(this, 800);
+    
+    // Reset score and lives display
+    this.scoreText.setText('Score: 0');
+    this.livesText.setText('Lives: 3');
 }
