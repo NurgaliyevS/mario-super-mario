@@ -422,7 +422,7 @@ function create() {
     this.scoreText.setScrollFactor(0);
     
     // Add lives text
-    this.livesText = this.add.text(650, 16, 'Lives: ' + lives, { fontSize: '32px', fill: '#FFF' });
+    this.livesText = this.add.text(630, 16, 'Lives: ' + lives, { fontSize: '32px', fill: '#FFF' });
     this.livesText.setScrollFactor(0);
 
     // Initialize game over group (will be populated when needed)
