@@ -356,6 +356,9 @@ function spawnGroundSegment(scene, x) {
 
 // Function to spawn floating platforms with coins/bricks
 function spawnFloatingPlatforms(scene, x) {
+    // Track all occupied positions to avoid overlaps
+    var occupiedPositions = [];
+    
     // Create some brick platforms with coins
     var numBrickRows = Phaser.Math.Between(1, 2);
     
@@ -364,27 +367,76 @@ function spawnFloatingPlatforms(scene, x) {
         var rowLength = Phaser.Math.Between(3, 6);
         var rowX = x + Phaser.Math.Between(100, 600);
         
+        // First, create all bricks in a row with exact spacing
         for (var i = 0; i < rowLength; i++) {
-            var brick = scene.bricks.create(rowX + (i * 32), rowY, 'brick');
+            var brickX = rowX + (i * 32);
+            var brickY = rowY;
             
-            // 30% chance to have a coin above a brick
-            if (Phaser.Math.Between(1, 10) <= 3) {
-                scene.coins.create(rowX + (i * 32), rowY - 40, 'coin');
-            }
+            // Store this position
+            occupiedPositions.push({x: brickX, y: brickY});
+            
+            var brick = scene.bricks.create(brickX, brickY, 'brick');
             
             // 10% chance to have a mushroom in a brick
             if (Phaser.Math.Between(1, 10) === 1) {
                 brick.hasMushroom = true;
             }
         }
+        
+        // Then, add coins above some bricks, ensuring no overlaps
+        for (var i = 0; i < rowLength; i++) {
+            // 30% chance to have a coin above a brick
+            if (Phaser.Math.Between(1, 10) <= 3) {
+                var coinX = rowX + (i * 32);
+                var coinY = rowY - 40; // Position coin above brick with enough space
+                
+                // Check if this position is already occupied
+                var canPlaceCoin = true;
+                for (var j = 0; j < occupiedPositions.length; j++) {
+                    var pos = occupiedPositions[j];
+                    if (Math.abs(pos.x - coinX) < 32 && Math.abs(pos.y - coinY) < 32) {
+                        canPlaceCoin = false;
+                        break;
+                    }
+                }
+                
+                if (canPlaceCoin) {
+                    scene.coins.create(coinX, coinY, 'coin');
+                    occupiedPositions.push({x: coinX, y: coinY});
+                }
+            }
+        }
     }
     
-    // Create some question blocks with coins
+    // Create some question blocks with coins, ensuring no overlaps
     var numQuestionBlocks = Phaser.Math.Between(1, 3);
-    for (var i = 0; i < numQuestionBlocks; i++) {
+    var attempts = 0;
+    var blocksPlaced = 0;
+    
+    // Try to place blocks, but limit attempts to avoid infinite loops
+    while (blocksPlaced < numQuestionBlocks && attempts < 30) {
         var blockX = x + Phaser.Math.Between(100, 700);
         var blockY = Phaser.Math.Between(380, 450);
-        scene.bricks.create(blockX, blockY, 'brick').setTint(0xFFD700);
+        
+        // Check if this position overlaps with any existing object
+        var overlaps = false;
+        for (var i = 0; i < occupiedPositions.length; i++) {
+            var pos = occupiedPositions[i];
+            // Use full brick width (32 pixels) to check for overlaps
+            if (Math.abs(pos.x - blockX) < 32 && Math.abs(pos.y - blockY) < 32) {
+                overlaps = true;
+                break;
+            }
+        }
+        
+        // Only place the block if there's no overlap
+        if (!overlaps) {
+            scene.bricks.create(blockX, blockY, 'brick').setTint(0xFFD700);
+            occupiedPositions.push({x: blockX, y: blockY});
+            blocksPlaced++;
+        }
+        
+        attempts++;
     }
 }
 
