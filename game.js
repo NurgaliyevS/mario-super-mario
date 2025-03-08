@@ -76,17 +76,23 @@ function create() {
     graphics.fillRect(12, 16, 8, 8); // Stem
     graphics.generateTexture('mushroom', 32, 32);
 
-    // Goomba texture: Brown enemy
+    // Goomba texture: Brown enemy with more distinct features
+    graphics.clear();
     graphics.fillStyle(0x8B4513); // Brown color
-    graphics.fillCircle(16, 16, 14); // Circle for body
+    graphics.fillRect(0, 0, 32, 32); // Square base
+    graphics.fillStyle(0x6B3103); // Darker brown for details
+    graphics.fillRect(4, 20, 24, 12); // Body detail
     graphics.fillStyle(0x000000); // Black color for eyes
-    graphics.fillRect(10, 10, 4, 4); // Left eye
-    graphics.fillRect(22, 10, 4, 4); // Right eye
+    graphics.fillRect(8, 8, 6, 6); // Left eye
+    graphics.fillRect(18, 8, 6, 6); // Right eye
     graphics.generateTexture('goomba', 32, 32);
 
-    // Goomba squished texture
+    // Goomba squished texture - improved to match new design
+    graphics.clear();
     graphics.fillStyle(0x8B4513); // Brown color
-    graphics.fillEllipse(16, 24, 28, 8); // Flattened ellipse
+    graphics.fillRect(0, 24, 32, 8); // Flattened rectangle
+    graphics.fillStyle(0x6B3103); // Darker brown for details
+    graphics.fillRect(4, 26, 24, 4); // Flattened body detail
     graphics.generateTexture('goomba-squished', 32, 32);
 
     // Cloud texture: White fluffy cloud
@@ -236,23 +242,52 @@ function update(time, delta) {
             enemy.destroy();
         }
         // Make goombas move
-        else if (enemy && enemy.active && enemy.body.touching.down) {
+        else if (enemy && enemy.active) {
+            // Initialize direction if not set
             if (enemy.direction === undefined) {
                 enemy.direction = -1;
                 enemy.setVelocityX(-50);
             }
             
-            // If hitting a wall or at an edge, turn around
-            if (enemy.body.blocked.left || 
-                !this.platforms.getChildren().some(p => p.x > enemy.x - 20 && p.x < enemy.x && Math.abs(p.y - enemy.y) < 40)) {
-                enemy.direction = 1;
-                enemy.setVelocityX(50);
-                enemy.flipX = true;
-            } else if (enemy.body.blocked.right || 
-                      !this.platforms.getChildren().some(p => p.x < enemy.x + 20 && p.x > enemy.x && Math.abs(p.y - enemy.y) < 40)) {
-                enemy.direction = -1;
-                enemy.setVelocityX(-50);
-                enemy.flipX = false;
+            // Ensure velocity is maintained
+            if (enemy.body.velocity.x === 0) {
+                enemy.setVelocityX(enemy.direction * 50);
+            }
+            
+            // If on the ground and hitting a wall or at an edge, turn around
+            if (enemy.body.touching.down) {
+                if (enemy.body.blocked.left) {
+                    enemy.direction = 1;
+                    enemy.setVelocityX(50);
+                    enemy.flipX = true;
+                } else if (enemy.body.blocked.right) {
+                    enemy.direction = -1;
+                    enemy.setVelocityX(-50);
+                    enemy.flipX = false;
+                }
+                
+                // Check for platform edges - simpler logic to prevent glitches
+                var onEdge = true;
+                this.platforms.getChildren().forEach(function(platform) {
+                    // Check if there's a platform under the enemy's next step
+                    if (enemy.direction < 0) { // Moving left
+                        if (platform.x > enemy.x - 32 && platform.x < enemy.x && 
+                            Math.abs(platform.y - enemy.y) < 40 && platform.y > enemy.y) {
+                            onEdge = false;
+                        }
+                    } else { // Moving right
+                        if (platform.x < enemy.x + 32 && platform.x > enemy.x && 
+                            Math.abs(platform.y - enemy.y) < 40 && platform.y > enemy.y) {
+                            onEdge = false;
+                        }
+                    }
+                });
+                
+                if (onEdge) {
+                    enemy.direction *= -1;
+                    enemy.setVelocityX(enemy.direction * 50);
+                    enemy.flipX = enemy.direction > 0;
+                }
             }
         }
     }, this);
@@ -321,7 +356,15 @@ function spawnGroundSegment(scene, x) {
     for (var i = 0; i < numEnemies; i++) {
         var enemyX = x + Phaser.Math.Between(200, 700);
         var enemy = scene.enemies.create(enemyX, 500, 'goomba');
-        enemy.body.setSize(28, 28); // Smaller hitbox
+        enemy.body.setSize(30, 30); // Hitbox matching square shape
+        enemy.body.setOffset(1, 1); // Center the hitbox
+        
+        // Initialize movement properties
+        enemy.direction = Phaser.Math.Between(0, 1) ? 1 : -1; // Randomly choose direction
+        enemy.setVelocityX(enemy.direction * 50);
+        enemy.flipX = enemy.direction > 0;
+        enemy.setBounce(0); // Ensure no bouncing
+        enemy.setCollideWorldBounds(false); // Allow going off-screen
     }
 }
 
