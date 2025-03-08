@@ -95,13 +95,6 @@ function create() {
     graphics.fillRect(4, 26, 24, 4); // Flattened body detail
     graphics.generateTexture('goomba-squished', 32, 32);
 
-    // Cloud texture: White fluffy cloud
-    graphics.fillStyle(0xffffff); // White color
-    graphics.fillCircle(16, 16, 12);
-    graphics.fillCircle(8, 16, 10);
-    graphics.fillCircle(24, 16, 10);
-    graphics.generateTexture('cloud', 48, 32);
-
     // Add player sprite with physics
     this.player = this.physics.add.sprite(100, 450, 'player');
     this.player.setBounce(0.1);
@@ -123,13 +116,6 @@ function create() {
     this.enemies = this.physics.add.group({
         allowGravity: true
     });
-
-    // Create clouds (decorative)
-    for (let i = 0; i < 20; i++) {
-        let cloudX = Phaser.Math.Between(400, 8000);
-        let cloudY = Phaser.Math.Between(50, 200);
-        this.add.image(cloudX, cloudY, 'cloud');
-    }
 
     // Set initial world bounds
     this.physics.world.setBounds(0, 0, 8000, 600);
