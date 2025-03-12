@@ -7,12 +7,13 @@
     <style>
         body {
             margin: 0;
-            padding: 0;
+            padding: 20px;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh;
+            overflow-y: auto;
+            background-color: #f0f0f0;
         }
         canvas {
             display: block;
@@ -21,6 +22,11 @@
         #game-container {
             display: flex;
             flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: 1000px;
+            margin: 20px 0;
         }
         #leaderboard {
             width: 200px;
@@ -83,6 +89,8 @@
             margin-top: 10px;
             font-family: monospace;
         }
+        .main-footer {
+        }
     </style>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-FHPL3DMVD0"></script>
@@ -113,6 +121,26 @@
         </div>
         <div id="submit-message"></div>
     </div>
+
+    <h1>Mario Super Mario</h1>
+
+    <footer class="main-footer">
+        <p>Mario Super Mario | The best place to play Mario online | Made by <a href="https://x.com/tech_nurgaliyev?utm_source=mariosuper.com&utm_medium=referral&utm_campaign=footer" target="_blank">@tech_nurgaliyev</a></p>
+        <br />
+        <div class="more-projects">
+            <div class="project-links">
+                <a href="https://bestwebsitegames.com/" target="_blank">Best Website Games</a> |
+                <a href="https://mvpagency.org/" target="_blank">MVPAgency</a> |
+                <a href="https://pregnantmeal.com/" target="_blank">PregnantMeal</a> |
+                <a href="https://redditagency.com/" target="_blank">Reddit Agency</a> |
+                <a href="https://environmentaljobboards.com/" target="_blank">Environmental Job Boards</a> |
+                <a href="https://subpage.io/" target="_blank">SubPage</a> |
+                <a href="https://uptimefriend.com/" target="_blank">UptimeFriend</a> |
+                <a href="https://tripplanss.com/" target="_blank">TripPlanss</a> |
+                <a href="https://weeealth.com/" target="_blank">Weeealth</a>
+            </div>
+        </div>
+    </footer>
     
     <script src="game.js"></script>
 </body>
